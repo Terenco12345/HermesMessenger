@@ -1,5 +1,6 @@
 package main.networking;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,12 +11,16 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
+import main.Main;
 import main.networking.messages.Message;
+import utils.FileUtils;
 
 public class Server {
 
+	private Main _main;
 	private Server _server;
-
+	private boolean _serverSuccess;
+	
 	private int _port;
 	private ServerSocket _serverSocket;
 
@@ -23,20 +28,24 @@ public class Server {
 
 	protected List<ClientHandler> _clientList = new ArrayList<ClientHandler>();
 
-	public Server(int port) {
+	public Server(int port, Main main) {
 		_server = this;
 		_port = port;
+		_main = main;
 	}
 
 	/**
 	 * Starts the server.
 	 */
-	public void startServer() {
+	public boolean startServer() {
+		
+		_serverSuccess = true;
 		try {
 			_serverSocket = new ServerSocket(_port);
 			System.out.println("Server socket established.");
 		} catch (IOException e) {
 			e.printStackTrace();
+			_serverSuccess = false;
 		}
 
 		_clientAcceptorThread = new Thread() {
@@ -45,17 +54,20 @@ public class Server {
 					try {
 						Socket clientSocket = _serverSocket.accept();
 						System.out.println("New client connected, "+clientSocket.getInetAddress());
-						_clientList.add(new ClientHandler(clientSocket, _server));
+						_clientList.add(new ClientHandler(clientSocket, _server, _main));
 					} catch (SocketTimeoutException e) {
 						e.printStackTrace();
+						_serverSuccess = false;
 					} catch (IOException e) {
 						e.printStackTrace();
+						_serverSuccess = false;
 					}
 				}
 			}
 		};
 
 		_clientAcceptorThread.start();
+		return _serverSuccess;
 	}
 
 	/**
@@ -63,8 +75,23 @@ public class Server {
 	 */
 	public void handleMessage(Message message) {
 		System.out.println(message._sender+" to "+message._receiver+": "+message._message);
+		FileUtils.writeLineInFile(message._sender+" to "+message._receiver+": "+message._message, new File(FileUtils.getSettingsProperty("path")+"/server-chatlog.txt"));
+		
+		_main._serverMenuController.updateChatlog();
 	}
 
+	/**
+	 * Sends a message to all clients.
+	 */
+	public void sendToAll(Message message) {
+		System.out.println(message._sender+" to all: "+message._message);
+		FileUtils.writeLineInFile(message._sender+" to all: "+message._message, new File(FileUtils.getSettingsProperty("path")+"/server-chatlog.txt"));
+		for(ClientHandler c: _clientList) {
+			c.sendToClient(message);
+		}
+		_main._serverMenuController.updateChatlog();
+	}
+	
 	/**
 	 * Closes all streams.
 	 */
@@ -81,7 +108,7 @@ public class Server {
 }
 
 class ClientHandler {
-
+	private Main _main;
 	private ClientHandler _clientHandler;
 	
 	public Socket _socket;
@@ -94,7 +121,8 @@ class ClientHandler {
 	public boolean _listening;
 	public Thread _listeningThread;
 
-	public ClientHandler(Socket socket, Server server) {
+	public ClientHandler(Socket socket, Server server, Main main) {
+		_main = main;
 		_clientHandler = this;
 		
 		try {
@@ -134,6 +162,21 @@ class ClientHandler {
 		_listeningThread.start();
 	}
 
+	/**
+	 * Send a object to the client.
+	 * @param message
+	 */
+	public void sendToClient(Message message){
+		try {
+			System.out.println("Sending message to server: "+message._message);
+			_outputStream.writeObject(message);
+			_main._serverMenuController.updateChatlog();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
 	/**
 	 * Close all streams.
 	 */

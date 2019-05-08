@@ -8,7 +8,7 @@ import javafx.stage.DirectoryChooser;
 import main.Main;
 import utils.FileUtils;
 
-public class SetupController extends Controller{
+public class SetupMenuController extends Controller{
 
 	Main _main;
 	@FXML TextField _pathField;
@@ -16,7 +16,7 @@ public class SetupController extends Controller{
 	@Override
 	public void injectData(Main main) {
 		_main = main;
-		System.out.println("Injecting data model into SetupController.");
+		System.out.println("Injecting data model into SetupMenuController.");
 
 		_pathField.setText(System.getProperty("user.home")+"\\Documents");
 	}
@@ -36,6 +36,7 @@ public class SetupController extends Controller{
 	public void next() {
 		FileUtils.setSettingsProperty("path", _pathField.getText()+"\\HermesMessenger");
 		System.out.println("Main directory set as "+FileUtils.getSettingsProperty("path")+". Moving onto main menu.");
+		_main.repairFiles();
 		_main.setSceneToMainMenu();
 	}
 }

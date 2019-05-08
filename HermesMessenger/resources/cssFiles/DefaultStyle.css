@@ -5,6 +5,20 @@
     -fx-background-color: linear-gradient(from 25px 25px to 400px 400px, #ADEEE7, #78D8CD);
 }
 
+.flow-pane{
+	-fx-background-color: #78D7D0;
+	-fx-text-fill: #83EA83;
+	-fx-font-family: 'Comic Sans MS';
+    -fx-background-color: linear-gradient(from 25px 25px to 400px 400px, #ADEEE7, #78D8CD);
+}
+
+.scroll-pane {
+	-fx-background-color: #78D7D0;
+	-fx-text-fill: #83EA83;
+	-fx-font-family: 'Comic Sans MS';
+    -fx-background-color: linear-gradient(from 25px 25px to 400px 400px, #ADEEE7, #78D8CD);
+}
+
 .title {
 	-fx-font-size: 40;
 }

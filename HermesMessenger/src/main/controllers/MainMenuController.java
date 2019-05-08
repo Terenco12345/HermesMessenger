@@ -15,12 +15,12 @@ public class MainMenuController extends Controller{
 	
 	@FXML
 	public void host() {
-		
+		_main.setSceneToServerSetupMenu();
 	}
 	
 	@FXML
 	public void join() {
-		
+		_main.setSceneToClientSetupMenu();
 	}
 	
 	@FXML
